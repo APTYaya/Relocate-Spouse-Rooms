@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Stardew Valley (SMAPI)",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "/mnt/games/SteamLibrary/steamapps/common/Stardew Valley/StardewModdingAPI",
+      "args": [],
+      "cwd": "/mnt/games/SteamLibrary/steamapps/common/Stardew Valley/",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    }
+  ]
+}

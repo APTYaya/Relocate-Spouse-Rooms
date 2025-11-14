@@ -1,0 +1,10 @@
+{
+    "Name": "Custom Spouse Rooms",
+    "Author": "Yaya",
+    "Version": "1.0.0",
+    "Description": "Allows for custom Spouse rooms and change the location of Spouses rooms. You can change the location using Relocate Spouse rooms option at robins shop.",
+    "UniqueID": "Yaya.SpouseRooms",
+    "EntryDll": "SpouseRooms.dll",
+    "MinimumApiVersion": "4.0.0",
+    "UpdateKeys": []
+}

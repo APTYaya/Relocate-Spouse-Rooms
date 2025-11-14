@@ -1,0 +1,11 @@
+# build output 
+bin/
+obj/
+out/
+
+# Visual studio / Rider
+.vs/
+.idea/
+
+# vs code
+.vscode/	

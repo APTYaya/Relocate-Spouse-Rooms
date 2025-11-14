@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Optimize>true</Optimize>
+    <EnableHarmony>true</EnableHarmony>
+  </PropertyGroup>
+
+  <!-- SMAPI mod build helper (adds Stardew references automatically) -->
+  <ItemGroup>
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+  </ItemGroup>
+
+  <!-- Your local installation path for Stardew Valley -->
+  <PropertyGroup>
+    <GamePath>/mnt/games/SteamLibrary/steamapps/common/Stardew Valley/</GamePath>
+  </PropertyGroup>
+
+</Project>
