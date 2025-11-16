@@ -46,6 +46,17 @@ namespace SpouseRooms.Menu
             _isDragging = false;
         }
 
+        public override void receiveKeyPress(Keys key)
+        {
+            if (Game1.options.doesInputListContain(Game1.options.menuButton, key))
+            {
+                ReturnFromMenu();
+                return;
+            }
+
+            base.receiveKeyPress(key);
+        }
+
         public override void update(GameTime time)
         {
             base.update(time);

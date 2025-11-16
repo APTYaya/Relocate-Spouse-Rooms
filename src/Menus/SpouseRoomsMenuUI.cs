@@ -3,7 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
+using SpouseRooms.Entry;
 using SpouseRooms.Relocation;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
+
 
 namespace SpouseRooms.Menu
 {
@@ -33,8 +38,16 @@ namespace SpouseRooms.Menu
                     {
                         _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
                         _statusTimer = 180;
-                    }
+                    
+                        var tile  = room.CenterTile;   
+                        var rect  = room.Bounds;
 
+                        ModEntry.Instance.Monitor.Log(
+                            $"[SpouseRooms] Selected '{room.SpouseName}' at tile ({tile.X}, {tile.Y}), " +
+                            $"bounds {rect.X},{rect.Y} size {rect.Width}x{rect.Height}.",
+                            StardewModdingAPI.LogLevel.Debug
+                        );
+                    }
                     Game1.playSound("smallSelect");
                     return true;
                 }
@@ -88,6 +101,7 @@ namespace SpouseRooms.Menu
                     {
                         _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
                         _statusTimer = 180;
+
                         Game1.playSound("smallSelect");
                     }
                 }
@@ -224,6 +238,12 @@ namespace SpouseRooms.Menu
                 _exitButtonBounds.Y + (_exitButtonBounds.Height - exitSize.Y) / 2f
             );
             Utility.drawTextWithShadow(b, exitText, font, exitPos, Game1.textColor);
+
+            if (_statusTimer > 0 && !string.IsNullOrEmpty(_statusMessage))
+            {
+                Vector2 statusPos = new Vector2(16, vh - 32);
+                Utility.drawTextWithShadow(b, _statusMessage, font, statusPos, Game1.textColor);
+            }
         }
     }
 }

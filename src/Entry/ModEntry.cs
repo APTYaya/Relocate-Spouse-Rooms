@@ -13,8 +13,12 @@ namespace SpouseRooms.Entry
 
         private ModConfig Config = new();
 
+        internal static ModEntry Instance { get; private set; } = null!;
+
         public override void Entry(IModHelper helper)
-        {
+        {   
+            Instance = this;
+
             Config = helper.ReadConfig<ModConfig>();
 
             var harmony = new Harmony(this.ModManifest.UniqueID);

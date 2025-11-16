@@ -82,7 +82,7 @@ namespace SpouseRooms.Menu
                 Game1.displayHUD = true;
                 Game1.displayFarmer = true;
                 Game1.viewportFreeze = false;
-            }, 300);
+            }, 500);
             exitThisMenu();
         }
 
