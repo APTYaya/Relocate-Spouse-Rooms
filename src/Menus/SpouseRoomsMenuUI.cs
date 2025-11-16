@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
 using SpouseRooms.Relocation;
@@ -11,95 +12,37 @@ namespace SpouseRooms.Menu
         private const int SpouseRowHeight = 24;
 
         private Rectangle _spousePanelBounds;
+        private Rectangle _exitButtonBounds;
 
-        private ClickableTextureComponent? _spouseButton;   
-        private ClickableTextureComponent? _confirmButton;
-
-        private void InitUI()
-        {
-            _spouseButton = new ClickableTextureComponent(
-                "SpouseSelector",
-                Rectangle.Empty,
-                null,
-                "Select spouse room",
-                Game1.mouseCursors,
-                new Rectangle(128, 256, 64, 64),
-                1f
-            );
-
-            _confirmButton = new ClickableTextureComponent(
-                "Confirm",
-                Rectangle.Empty,
-                null,
-                "Confirm placement",
-                Game1.mouseCursors,
-                new Rectangle(128, 256, 64, 64),
-                1f
-            );
-
-            allClickableComponents ??= new();
-            allClickableComponents.Clear();
-
-            if (_spouseButton != null)
-            {
-                _spouseButton.myID = 0;
-                allClickableComponents.Add(_spouseButton);
-            }
-
-            if (_confirmButton != null)
-            {
-                _confirmButton.myID = 1;
-                allClickableComponents.Add(_confirmButton);
-            }
-
-            if (_spouseButton != null && _confirmButton != null)
-            {
-                _spouseButton.rightNeighborID = _confirmButton.myID;
-                _confirmButton.leftNeighborID  = _spouseButton.myID;
-            }
-
-            if (Game1.options.SnappyMenus)
-            {
-                populateClickableComponentList();
-                snapToDefaultClickableComponent();
-            }
-        }
-
-        public override void snapToDefaultClickableComponent()
-        {
-            if (!Game1.options.SnappyMenus)
-                return;
-
-            if (_spouseButton != null)
-            {
-                currentlySnappedComponent = _spouseButton;
-                snapCursorToCurrentSnappedComponent();
-            }
-            else if (_confirmButton != null)
-            {
-                currentlySnappedComponent = _confirmButton;
-                snapCursorToCurrentSnappedComponent();
-            }
-        }
+        private int _hoveredRow = -1;
+        private string? _statusMessage;
 
         private bool HandleLeftClickUI(int x, int y)
         {
             if (_spousePanelBounds.Contains(x, y) && SpouseRoomRelocationManager.Rooms.Count > 0)
             {
-                int startY = _spousePanelBounds.Y + 24; 
+                int startY = _spousePanelBounds.Y + 24;
                 int index = (y - startY) / SpouseRowHeight;
 
                 if (index >= 0 && index < SpouseRoomRelocationManager.Rooms.Count)
                 {
                     SpouseRoomRelocationManager.SelectedIndex = index;
+
+                    var room = SpouseRoomRelocationManager.SelectedRoom;
+                    if (room != null)
+                    {
+                        _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
+                        _statusTimer = 180;
+                    }
+
                     Game1.playSound("smallSelect");
                     return true;
                 }
             }
 
-            if (_confirmButton != null && _confirmButton.containsPoint(x, y))
+            if (_exitButtonBounds.Contains(x, y))
             {
-                Game1.playSound("smallSelect");
+                Game1.playSound("bigDeSelect");
                 ReturnFromMenu();
                 return true;
             }
@@ -107,12 +50,74 @@ namespace SpouseRooms.Menu
             return false;
         }
 
+        public override void receiveGamePadButton(Buttons b)
+        {
+
+            if (b == Buttons.DPadUp)
+            {
+                if (SpouseRoomRelocationManager.Rooms.Count > 0)
+                {
+                    SpouseRoomRelocationManager.SelectedIndex--;
+                    if (SpouseRoomRelocationManager.SelectedIndex < 0)
+                        SpouseRoomRelocationManager.SelectedIndex = SpouseRoomRelocationManager.Rooms.Count - 1;
+
+                    Game1.playSound("shiny4");
+                }
+                return;
+            }
+
+            if (b == Buttons.DPadDown)
+            {
+                if (SpouseRoomRelocationManager.Rooms.Count > 0)
+                {
+                    SpouseRoomRelocationManager.SelectedIndex++;
+                    if (SpouseRoomRelocationManager.SelectedIndex >= SpouseRoomRelocationManager.Rooms.Count)
+                        SpouseRoomRelocationManager.SelectedIndex = 0;
+
+                    Game1.playSound("shiny4");
+                }
+                return;
+            }
+
+            if (b == Buttons.A)
+            {
+                if (SpouseRoomRelocationManager.Rooms.Count > 0)
+                {
+                    var room = SpouseRoomRelocationManager.SelectedRoom;
+                    if (room != null)
+                    {
+                        _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
+                        _statusTimer = 180;
+                        Game1.playSound("smallSelect");
+                    }
+                }
+                return;
+            }
+
+            if (b == Buttons.B)
+            {
+                Game1.playSound("bigDeSelect");
+                ReturnFromMenu();
+                return;
+            }
+
+            base.receiveGamePadButton(b);
+        }
+
         public override void performHoverAction(int x, int y)
         {
             base.performHoverAction(x, y);
 
-            if (_confirmButton != null)
-                _confirmButton.scale = _confirmButton.containsPoint(x, y) ? 1.2f : 1f;
+            _hoveredRow = -1;
+
+            if (_spousePanelBounds.Contains(x, y) && SpouseRoomRelocationManager.Rooms.Count > 0)
+            {
+                int startY = _spousePanelBounds.Y + 24;
+                int index = (y - startY) / SpouseRowHeight;
+
+                if (index >= 0 && index < SpouseRoomRelocationManager.Rooms.Count)
+                    _hoveredRow = index;
+            }
         }
 
         private void DrawUI(SpriteBatch b)
@@ -126,47 +131,32 @@ namespace SpouseRooms.Menu
                 roomCount = 1;
 
             int panelHeight =
-                24 +                    
+                24 +
                 roomCount * SpouseRowHeight +
-                16;                     
+                16;
 
             _spousePanelBounds = new Rectangle(
                 margin,
                 margin,
-                260,
+                320,
                 panelHeight
             );
 
-            Rectangle confirmButtonRect = new Rectangle(
+            _exitButtonBounds = new Rectangle(
                 vw - 96 - margin,
                 vh - 96 - margin,
                 96,
                 96
             );
 
-            if (_spouseButton != null)
-            {
-                _spouseButton.bounds = new Rectangle(
-                    _spousePanelBounds.X + 16,
-                    _spousePanelBounds.Y + 24,
-                    48,
-                    48
-                );
-            }
-
-            if (_confirmButton != null)
-            {
-                _confirmButton.bounds = confirmButtonRect;
-            }
-
             Texture2D tex = Game1.menuTexture;
-            Rectangle source = new Rectangle(0, 256, 60, 60);
+            Rectangle frame = new Rectangle(0, 256, 60, 60);
             SpriteFont font = Game1.smallFont;
 
             IClickableMenu.drawTextureBox(
                 b,
                 tex,
-                source,
+                frame,
                 _spousePanelBounds.X,
                 _spousePanelBounds.Y,
                 _spousePanelBounds.Width,
@@ -187,17 +177,21 @@ namespace SpouseRooms.Menu
 
             foreach (var room in SpouseRoomRelocationManager.Rooms)
             {
-                string name = $"Spouse room: {room.SpouseName}";
-                Vector2 namePos = new Vector2(
+                string label = $"Spouse room: {room.SpouseName}";
+                Vector2 pos = new Vector2(
                     _spousePanelBounds.X + 16,
                     _spousePanelBounds.Y + 24 + lineIndex * SpouseRowHeight
                 );
 
-                Color textColor = (lineIndex == selected)
-                    ? Game1.textColor
-                    : Color.SandyBrown; 
+                Color color = Game1.textColor;
 
-                Utility.drawTextWithShadow(b, name, font, namePos, textColor);
+                if (lineIndex == selected)
+                    color = Color.Gold;
+                else if (lineIndex == _hoveredRow)
+                    color = Color.LightGoldenrodYellow;
+
+                Utility.drawTextWithShadow(b, label, font, pos, color);
+
                 lineIndex++;
             }
 
@@ -210,30 +204,26 @@ namespace SpouseRooms.Menu
                 Utility.drawTextWithShadow(b, "(no spouse room)", font, nonePos, Game1.textColor);
             }
 
-            if (_confirmButton != null)
-            {
-                IClickableMenu.drawTextureBox(
-                    b,
-                    tex,
-                    source,
-                    _confirmButton.bounds.X,
-                    _confirmButton.bounds.Y,
-                    _confirmButton.bounds.Width,
-                    _confirmButton.bounds.Height,
-                    Color.White,
-                    1f,
-                    drawShadow: false
-                );
+            IClickableMenu.drawTextureBox(
+                b,
+                tex,
+                frame,
+                _exitButtonBounds.X,
+                _exitButtonBounds.Y,
+                _exitButtonBounds.Width,
+                _exitButtonBounds.Height,
+                Color.White,
+                1f,
+                drawShadow: false
+            );
 
-                string confirmText = "Confirm";
-                Vector2 size = font.MeasureString(confirmText);
-                Vector2 textPos = new Vector2(
-                    _confirmButton.bounds.X + (_confirmButton.bounds.Width - size.X) / 1.5f,
-                    _confirmButton.bounds.Y + (_confirmButton.bounds.Height - size.Y) / 1.5f
-                );
-
-                Utility.drawTextWithShadow(b, confirmText, font, textPos, Game1.textColor);
-            }
+            string exitText = "Exit";
+            Vector2 exitSize = font.MeasureString(exitText);
+            Vector2 exitPos = new Vector2(
+                _exitButtonBounds.X + (_exitButtonBounds.Width - exitSize.X) / 2f,
+                _exitButtonBounds.Y + (_exitButtonBounds.Height - exitSize.Y) / 2f
+            );
+            Utility.drawTextWithShadow(b, exitText, font, exitPos, Game1.textColor);
         }
     }
 }
