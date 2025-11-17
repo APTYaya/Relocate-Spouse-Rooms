@@ -22,27 +22,26 @@ namespace SpouseRooms.Menu
             _oldTile = oldTile;
             _oldFacing = oldFacing;
 
-            SpouseRoomRelocationManager.ScanCurrentFarmHouse();
-
             DelayedAction.functionAfterDelay(() =>
             {
                 Game1.viewportFreeze = true;
-                var house = Game1.currentLocation as FarmHouse;
-                SpouseRoomInfo? room = null;
 
+                var house = Game1.currentLocation as FarmHouse;
                 if (house != null)
                 {
-                    room = SpouseRoomProvider.GetRoom(house);
-                }
+                    SpouseRoomRelocationManager.RefreshRooms(house);
 
-                if (room != null)
-                {
-                    CenterViewportOnTile(room.CenterTile);
+                    var room = SpouseRoomRelocationManager.SelectedRoom;
+                    if (room != null)
+                        CenterViewportOnTile(room.CenterTile);
+                    else
+                        CenterViewportOnTile(Game1.player.TilePoint);
                 }
                 else
                 {
                     CenterViewportOnTile(Game1.player.TilePoint);
                 }
+
                 Game1.displayHUD = false;
                 Game1.displayFarmer = false;
             }, 700);
@@ -91,6 +90,8 @@ namespace SpouseRooms.Menu
             base.draw(b);
             
             DrawUI(b);
+
+            SpouseRoomRelocationManager.DrawPlacementOverlay(b);
 
             drawMouse(b);
         }

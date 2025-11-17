@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
+using SpouseRooms.Relocation;
 
 namespace SpouseRooms.Menu
 {
@@ -17,6 +18,15 @@ namespace SpouseRooms.Menu
             if (HandleLeftClickUI(x, y))
                 return;
 
+            if (SpouseRoomRelocationManager.IsPlacing)
+            {
+                SpouseRoomRelocationManager.CommitPlacement(Game1.currentLocation);
+
+                Game1.playSound("coin");
+                _statusMessage = "Spouse room position saved";
+                _statusTimer = 180;
+                return;
+            }
             base.receiveLeftClick(x, y, playSound);
 
             _isDragging = true;
@@ -62,6 +72,8 @@ namespace SpouseRooms.Menu
             base.update(time);
 
             GamepadKeyboardPanning();
+
+            SpouseRoomRelocationManager.UpdatePlacementFromMouse(Game1.currentLocation);
 
             if (_statusTimer > 0)
                 _statusTimer--;

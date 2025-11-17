@@ -36,6 +36,8 @@ namespace SpouseRooms.Menu
                     var room = SpouseRoomRelocationManager.SelectedRoom;
                     if (room != null)
                     {
+                        SpouseRoomRelocationManager.StartPlacement(room);
+
                         _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
                         _statusTimer = 180;
                     
@@ -92,6 +94,14 @@ namespace SpouseRooms.Menu
                 return;
             }
 
+            if (b == Buttons.A && SpouseRoomRelocationManager.IsPlacing)
+            {
+                SpouseRoomRelocationManager.CommitPlacement(Game1.currentLocation);
+                Game1.playSound("coin");
+                _statusMessage = "Spouse room position saved.";
+                _statusTimer = 180;
+                return;
+            }
             if (b == Buttons.A)
             {
                 if (SpouseRoomRelocationManager.Rooms.Count > 0)
@@ -99,6 +109,8 @@ namespace SpouseRooms.Menu
                     var room = SpouseRoomRelocationManager.SelectedRoom;
                     if (room != null)
                     {
+                        SpouseRoomRelocationManager.StartPlacement(room);
+
                         _statusMessage = $"Selected spouse room: {room.SpouseName}. Choose a new location.";
                         _statusTimer = 180;
 
